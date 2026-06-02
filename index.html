@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#05060f" />
+  <title>AETHER // Next-Gen Digital Universe</title>
+  <meta name="description" content="An immersive sci-fi experience — floating holographic interfaces, cinematic particle simulations and abstract 3D environments." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Space+Grotesk:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- ░░ Custom cursor ░░ -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- ░░ Boot / preloader sequence ░░ -->
+  <div class="boot" id="boot">
+    <div class="boot__core">
+      <div class="boot__ring"></div>
+      <div class="boot__ring boot__ring--2"></div>
+      <div class="boot__glyph">⟁</div>
+    </div>
+    <div class="boot__log" id="bootLog"></div>
+    <div class="boot__bar"><span id="bootBar"></span></div>
+    <div class="boot__hint">INITIALIZING AETHER CORE</div>
+  </div>
+
+  <!-- ░░ WebGL canvas (particle universe) ░░ -->
+  <canvas id="webgl"></canvas>
+
+  <!-- ░░ Atmospheric overlays ░░ -->
+  <div class="grain"></div>
+  <div class="scanlines"></div>
+  <div class="vignette"></div>
+
+  <!-- ░░ HUD frame ░░ -->
+  <div class="hud" aria-hidden="true">
+    <span class="hud__corner hud__corner--tl"></span>
+    <span class="hud__corner hud__corner--tr"></span>
+    <span class="hud__corner hud__corner--bl"></span>
+    <span class="hud__corner hud__corner--br"></span>
+    <div class="hud__readout" id="hudReadout">SYS//ONLINE · LAT 0.000 · LON 0.000</div>
+    <div class="hud__pulse"><span></span></div>
+  </div>
+
+  <!-- ░░ Navigation ░░ -->
+  <header class="nav" id="nav">
+    <a class="nav__brand" href="#hero" data-link>
+      <span class="nav__mark">◈</span> AETHER
+    </a>
+    <nav class="nav__links">
+      <a href="#hero" data-link>Origin</a>
+      <a href="#systems" data-link>Systems</a>
+      <a href="#nexus" data-link>Nexus</a>
+      <a href="#archive" data-link>Archive</a>
+    </nav>
+    <button class="nav__cta" data-magnetic>ENTER ▸</button>
+  </header>
+
+  <!-- ░░ Content sections ░░ -->
+  <main>
+    <!-- HERO -->
+    <section class="section hero" id="hero">
+      <div class="hero__kicker reveal" data-split>[ TRANSMISSION 2099 · SECTOR ∞ ]</div>
+      <h1 class="hero__title">
+        <span class="line reveal" data-split>BEYOND THE</span>
+        <span class="line line--glow reveal" data-split>HOLOGRAM</span>
+      </h1>
+      <p class="hero__sub reveal" data-split>
+        A surreal digital universe where light becomes interface. Drift through
+        cinematic particle fields, abstract geometries and living holographic matter.
+      </p>
+      <div class="hero__actions reveal" data-split>
+        <button class="btn btn--neon" data-magnetic>Launch Experience</button>
+        <button class="btn btn--ghost" data-magnetic>Watch Intro</button>
+      </div>
+      <div class="hero__scroll">
+        <span class="hero__scroll-line"></span>
+        SCROLL TO DESCEND
+      </div>
+    </section>
+
+    <!-- SYSTEMS -->
+    <section class="section systems" id="systems">
+      <div class="section__head">
+        <span class="section__idx">01</span>
+        <h2 class="section__title reveal" data-split>Living Systems</h2>
+        <p class="section__lead reveal" data-split>
+          Modular holo-interfaces that respond to your presence. Tilt, glow and
+          parallax compose a UI that feels alive.
+        </p>
+      </div>
+      <div class="cards" id="cards">
+        <!-- cards injected by JS -->
+      </div>
+    </section>
+
+    <!-- NEXUS -->
+    <section class="section nexus" id="nexus">
+      <div class="nexus__inner">
+        <div class="nexus__copy">
+          <span class="section__idx">02</span>
+          <h2 class="section__title reveal" data-split>The Nexus Core</h2>
+          <p class="section__lead reveal" data-split>
+            At the center of the universe pulses a reactive core — a fluid
+            simulation of glowing matter that bends to motion and sound.
+          </p>
+          <ul class="nexus__stats">
+            <li><b data-count="8400000">0</b><span>Particles Streamed</span></li>
+            <li><b data-count="120">0</b><span>FPS Holo-Render</span></li>
+            <li><b data-count="64">0</b><span>Depth Layers</span></li>
+          </ul>
+        </div>
+        <div class="nexus__orb" data-magnetic>
+          <div class="orb">
+            <span class="orb__core"></span>
+            <span class="orb__shell"></span>
+            <span class="orb__shell orb__shell--2"></span>
+            <span class="orb__ring"></span>
+            <span class="orb__ring orb__ring--2"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARCHIVE -->
+    <section class="section archive" id="archive">
+      <div class="section__head">
+        <span class="section__idx">03</span>
+        <h2 class="section__title reveal" data-split>Signal Archive</h2>
+        <p class="section__lead reveal" data-split>
+          Fragments recovered from the deep grid. Hover to decrypt.
+        </p>
+      </div>
+      <div class="archive__grid" id="archiveGrid"></div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section closing" id="closing">
+      <h2 class="closing__title reveal" data-split>READY TO TRANSCEND?</h2>
+      <p class="closing__sub reveal" data-split>Step through the hologram. The universe is rendering.</p>
+      <button class="btn btn--neon btn--lg" data-magnetic>Initialize Journey</button>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>AETHER © 2099 — A speculative interface</span>
+    <span class="foot__mono" id="footClock">--:--:--</span>
+  </footer>
+
+  <!-- Three.js (WebGL particle universe) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="js/scene.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
