@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#05060f" />
+  <title>AETHER // Next-Gen Digital Universe</title>
+  <meta name="description" content="An immersive sci-fi experience — floating holographic interfaces, cinematic particle simulations and abstract 3D environments." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Space+Grotesk:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+/* ══════════════════════════════════════════════════════════════
+   AETHER — Next-gen digital universe
+   Dark cinematic · neon gradients · glassmorphism · holographic
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg: #05060f;
+  --bg-2: #080a1a;
+  --ink: #e8ecff;
+  --ink-dim: #8a93c2;
+  --cyan: #38f9ff;
+  --violet: #8b5cff;
+  --magenta: #ff3df0;
+  --lime: #b6ff3d;
+  --glass: rgba(20, 26, 56, 0.32);
+  --glass-brd: rgba(140, 170, 255, 0.18);
+  --glow-cyan: 0 0 24px rgba(56, 249, 255, 0.55);
+  --glow-violet: 0 0 30px rgba(139, 92, 255, 0.55);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.65, 0.05, 0.36, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: radial-gradient(120% 120% at 50% -10%, #0b1030 0%, var(--bg) 55%, #02030a 100%);
+  color: var(--ink);
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  overflow-x: hidden;
+  cursor: none;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+@media (hover: none) { body { cursor: auto; } }
+
+::selection { background: var(--magenta); color: #fff; }
+
+a { color: inherit; text-decoration: none; }
+
+/* ░░ WebGL canvas ░░ */
+#webgl {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ░░ Atmospheric overlays ░░ */
+.grain, .scanlines, .vignette {
+  position: fixed; inset: 0; z-index: 2; pointer-events: none;
+}
+.grain {
+  opacity: 0.05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 0.5s steps(2) infinite;
+}
+@keyframes grain { to { transform: translate(-6%, 4%); } }
+.scanlines {
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 3px);
+  opacity: 0.25; mix-blend-mode: multiply;
+}
+.vignette {
+  background: radial-gradient(120% 100% at 50% 50%, transparent 55%, rgba(0,0,0,0.7) 100%);
+}
+
+/* ░░ Custom cursor ░░ */
+.cursor, .cursor-ring { position: fixed; top: 0; left: 0; z-index: 9999; pointer-events: none; border-radius: 50%; mix-blend-mode: screen; }
+.cursor { width: 7px; height: 7px; background: var(--cyan); box-shadow: var(--glow-cyan); transform: translate(-50%, -50%); }
+.cursor-ring {
+  width: 38px; height: 38px; border: 1px solid rgba(56,249,255,0.6);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s var(--ease), height 0.3s var(--ease), border-color 0.3s, background 0.3s;
+}
+.cursor-ring.is-hover { width: 64px; height: 64px; border-color: var(--magenta); background: rgba(255,61,240,0.08); }
+@media (hover: none) { .cursor, .cursor-ring { display: none; } }
+
+/* ░░ Boot sequence ░░ */
+.boot {
+  position: fixed; inset: 0; z-index: 1000;
+  background: radial-gradient(circle at 50% 50%, #0a0f2c 0%, #02030a 80%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px;
+  transition: opacity 0.8s var(--ease), visibility 0.8s;
+}
+.boot.is-done { opacity: 0; visibility: hidden; }
+.boot__core { position: relative; width: 130px; height: 130px; display: grid; place-items: center; }
+.boot__ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 1px solid transparent; border-top-color: var(--cyan); border-right-color: var(--violet);
+  animation: spin 1.1s linear infinite; filter: drop-shadow(var(--glow-cyan));
+}
+.boot__ring--2 { inset: 16px; border-top-color: var(--magenta); border-right-color: transparent; border-bottom-color: var(--lime); animation-duration: 1.7s; animation-direction: reverse; }
+.boot__glyph { font-size: 38px; color: var(--cyan); text-shadow: var(--glow-cyan); animation: pulse 1.4s ease-in-out infinite; }
+.boot__log { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--ink-dim); height: 16px; letter-spacing: 1px; }
+.boot__bar { width: 240px; height: 2px; background: rgba(255,255,255,0.08); overflow: hidden; border-radius: 2px; }
+.boot__bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--cyan), var(--magenta)); box-shadow: var(--glow-cyan); transition: width 0.2s var(--ease); }
+.boot__hint { font-family: "Orbitron", sans-serif; font-size: 11px; letter-spacing: 5px; color: var(--ink-dim); }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.18); opacity: 0.6; } }
+
+/* ░░ HUD frame ░░ */
+.hud { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
+.hud__corner { position: absolute; width: 26px; height: 26px; border: 1px solid rgba(56,249,255,0.4); }
+.hud__corner--tl { top: 22px; left: 22px; border-right: 0; border-bottom: 0; }
+.hud__corner--tr { top: 22px; right: 22px; border-left: 0; border-bottom: 0; }
+.hud__corner--bl { bottom: 22px; left: 22px; border-right: 0; border-top: 0; }
+.hud__corner--br { bottom: 22px; right: 22px; border-left: 0; border-top: 0; }
+.hud__readout { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 2px; color: var(--ink-dim); opacity: 0.7; }
+.hud__pulse { position: absolute; top: 28px; right: 60px; width: 9px; height: 9px; }
+.hud__pulse span { position: absolute; inset: 0; border-radius: 50%; background: var(--lime); box-shadow: 0 0 10px var(--lime); animation: blink 1.6s ease-in-out infinite; }
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+/* ░░ Navigation ░░ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px clamp(24px, 5vw, 64px);
+  transition: transform 0.5s var(--ease), background 0.5s;
+}
+.nav.is-hidden { transform: translateY(-110%); }
+.nav.is-scrolled { background: linear-gradient(180deg, rgba(5,6,15,0.7), transparent); backdrop-filter: blur(6px); }
+.nav__brand { font-family: "Orbitron", sans-serif; font-weight: 900; letter-spacing: 4px; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+.nav__mark { color: var(--cyan); text-shadow: var(--glow-cyan); animation: pulse 3s ease-in-out infinite; }
+.nav__links { display: flex; gap: clamp(16px, 2.5vw, 40px); }
+.nav__links a { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-dim); position: relative; padding: 4px 0; transition: color 0.3s; }
+.nav__links a::after { content: ""; position: absolute; left: 0; bottom: -2px; width: 0; height: 1px; background: linear-gradient(90deg, var(--cyan), var(--magenta)); transition: width 0.4s var(--ease); }
+.nav__links a:hover { color: var(--ink); }
+.nav__links a:hover::after { width: 100%; }
+.nav__cta {
+  font-family: "Orbitron", sans-serif; font-size: 12px; letter-spacing: 3px; color: var(--ink);
+  background: linear-gradient(120deg, rgba(56,249,255,0.12), rgba(139,92,255,0.12));
+  border: 1px solid var(--glass-brd); padding: 11px 20px; border-radius: 40px;
+  cursor: none; backdrop-filter: blur(8px); transition: box-shadow 0.4s, border-color 0.4s, transform 0.2s;
+}
+.nav__cta:hover { box-shadow: var(--glow-cyan); border-color: var(--cyan); }
+@media (max-width: 720px) { .nav__links { display: none; } }
+
+/* ░░ Layout / sections ░░ */
+main { position: relative; z-index: 5; }
+.section { position: relative; padding: clamp(80px, 14vh, 180px) clamp(24px, 6vw, 100px); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+.section__head { max-width: 720px; margin-bottom: 56px; }
+.section__idx { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--cyan); letter-spacing: 4px; }
+.section__title { font-family: "Orbitron", sans-serif; font-weight: 700; font-size: clamp(32px, 5vw, 64px); line-height: 1.05; margin: 14px 0 18px; }
+.section__lead { color: var(--ink-dim); font-size: clamp(15px, 1.5vw, 19px); max-width: 60ch; }
+
+/* ░░ HERO ░░ */
+.hero { align-items: center; text-align: center; }
+.hero__kicker { font-family: "JetBrains Mono", monospace; font-size: 13px; letter-spacing: 6px; color: var(--cyan); margin-bottom: 22px; opacity: 0.85; }
+.hero__title { font-family: "Orbitron", sans-serif; font-weight: 900; font-size: clamp(48px, 11vw, 168px); line-height: 0.92; letter-spacing: -2px; }
+.hero__title .line { display: block; }
+.line--glow {
+  background: linear-gradient(110deg, var(--cyan), var(--violet) 40%, var(--magenta) 75%, var(--lime));
+  background-size: 280% auto;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 32px rgba(139,92,255,0.45));
+  animation: holoflow 8s linear infinite;
+}
+@keyframes holoflow { to { background-position: 280% center; } }
+.hero__sub { max-width: 56ch; margin: 30px auto 40px; color: var(--ink-dim); font-size: clamp(15px, 1.6vw, 20px); }
+.hero__actions { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; }
+.hero__scroll { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 3px; color: var(--ink-dim); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.hero__scroll-line { width: 1px; height: 50px; background: linear-gradient(var(--cyan), transparent); position: relative; overflow: hidden; }
+.hero__scroll-line::after { content: ""; position: absolute; top: -50%; left: 0; width: 100%; height: 50%; background: var(--cyan); box-shadow: var(--glow-cyan); animation: descend 2s var(--ease) infinite; }
+@keyframes descend { 0% { top: -60%; } 100% { top: 110%; } }
+
+/* ░░ Buttons ░░ */
+.btn { font-family: "Orbitron", sans-serif; font-size: 13px; letter-spacing: 2px; padding: 15px 30px; border-radius: 44px; cursor: none; border: 1px solid transparent; position: relative; overflow: hidden; transition: transform 0.25s var(--ease), box-shadow 0.4s; }
+.btn--lg { padding: 19px 44px; font-size: 15px; }
+.btn--neon { color: #04121a; background: linear-gradient(120deg, var(--cyan), var(--lime)); box-shadow: 0 0 24px rgba(56,249,255,0.45); font-weight: 700; }
+.btn--neon:hover { box-shadow: 0 0 44px rgba(56,249,255,0.8); }
+.btn--ghost { color: var(--ink); background: var(--glass); border-color: var(--glass-brd); backdrop-filter: blur(8px); }
+.btn--ghost:hover { border-color: var(--magenta); box-shadow: var(--glow-violet); }
+.btn::before { content: ""; position: absolute; top: 0; left: -120%; width: 60%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255,255,255,0.45), transparent); transform: skewX(-20deg); transition: left 0.6s var(--ease); }
+.btn:hover::before { left: 140%; }
+
+/* ░░ SYSTEMS — glass cards ░░ */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+.card {
+  position: relative; padding: 30px 28px; border-radius: 20px;
+  background: var(--glass); border: 1px solid var(--glass-brd);
+  backdrop-filter: blur(14px); overflow: hidden;
+  transform-style: preserve-3d; transition: box-shadow 0.4s, border-color 0.4s;
+  will-change: transform;
+}
+.card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), rgba(56,249,255,0.18), transparent 45%); opacity: 0; transition: opacity 0.4s; }
+.card:hover::before { opacity: 1; }
+.card:hover { border-color: rgba(56,249,255,0.5); box-shadow: 0 30px 60px -30px rgba(56,249,255,0.4); }
+.card__glyph { font-size: 30px; margin-bottom: 18px; display: inline-block; filter: drop-shadow(0 0 14px currentColor); transform: translateZ(40px); }
+.card__title { font-family: "Orbitron", sans-serif; font-size: 19px; margin-bottom: 10px; transform: translateZ(28px); }
+.card__text { color: var(--ink-dim); font-size: 14.5px; transform: translateZ(16px); }
+.card__tag { position: absolute; top: 20px; right: 22px; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 2px; color: var(--cyan); opacity: 0.6; }
+.card__line { margin-top: 22px; height: 1px; background: linear-gradient(90deg, var(--glass-brd), transparent); }
+
+/* ░░ NEXUS ░░ */
+.nexus__inner { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(30px, 6vw, 90px); align-items: center; }
+@media (max-width: 880px) { .nexus__inner { grid-template-columns: 1fr; } }
+.nexus__stats { list-style: none; display: flex; gap: 36px; margin-top: 40px; flex-wrap: wrap; }
+.nexus__stats b { font-family: "Orbitron", sans-serif; font-size: clamp(26px, 3vw, 40px); display: block; background: linear-gradient(120deg, var(--cyan), var(--magenta)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.nexus__stats span { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-dim); }
+.nexus__orb { display: grid; place-items: center; min-height: 360px; }
+
+/* Holographic orb */
+.orb { position: relative; width: 280px; height: 280px; display: grid; place-items: center; }
+.orb__core { position: absolute; width: 90px; height: 90px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, var(--cyan) 40%, var(--violet) 80%); box-shadow: 0 0 60px rgba(56,249,255,0.7), inset 0 0 30px rgba(255,255,255,0.5); animation: corepulse 3s ease-in-out infinite; }
+.orb__shell { position: absolute; width: 170px; height: 170px; border-radius: 50%; border: 1px solid rgba(56,249,255,0.3); animation: spin 9s linear infinite; }
+.orb__shell--2 { width: 220px; height: 220px; border-color: rgba(255,61,240,0.25); border-style: dashed; animation-duration: 16s; animation-direction: reverse; }
+.orb__ring { position: absolute; width: 280px; height: 280px; border-radius: 50%; border: 1px solid transparent; border-top-color: var(--magenta); border-bottom-color: var(--cyan); animation: spin 7s linear infinite; filter: drop-shadow(0 0 8px rgba(139,92,255,0.5)); }
+.orb__ring--2 { width: 240px; height: 130px; border-top-color: var(--lime); border-left-color: var(--violet); animation-duration: 5s; animation-direction: reverse; }
+@keyframes corepulse { 0%,100% { transform: scale(1); filter: hue-rotate(0deg); } 50% { transform: scale(1.12); filter: hue-rotate(40deg); } }
+
+/* ░░ ARCHIVE ░░ */
+.archive__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+.frag {
+  position: relative; padding: 24px 22px; border-radius: 16px; min-height: 150px;
+  background: linear-gradient(160deg, rgba(20,26,56,0.5), rgba(8,10,26,0.3));
+  border: 1px solid var(--glass-brd); backdrop-filter: blur(10px); overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.4s var(--ease), border-color 0.4s;
+}
+.frag:hover { transform: translateY(-6px); border-color: rgba(182,255,61,0.5); }
+.frag__id { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--cyan); letter-spacing: 2px; }
+.frag__title { font-family: "Orbitron", sans-serif; font-size: 16px; margin-top: 12px; }
+.frag__meta { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--ink-dim); }
+.frag__bars { display: flex; gap: 3px; margin-top: 14px; align-items: flex-end; height: 24px; }
+.frag__bars i { flex: 1; background: linear-gradient(var(--cyan), var(--violet)); opacity: 0.5; border-radius: 1px; animation: eq 1.2s ease-in-out infinite; }
+@keyframes eq { 0%,100% { height: 20%; } 50% { height: 100%; } }
+
+/* ░░ CLOSING ░░ */
+.closing { text-align: center; align-items: center; }
+.closing__title { font-family: "Orbitron", sans-serif; font-weight: 900; font-size: clamp(34px, 7vw, 96px); background: linear-gradient(110deg, var(--cyan), var(--magenta), var(--lime)); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: holoflow 6s linear infinite; }
+.closing__sub { color: var(--ink-dim); margin: 20px 0 40px; font-size: clamp(15px, 1.6vw, 20px); }
+
+/* ░░ Footer ░░ */
+.foot { position: relative; z-index: 5; display: flex; justify-content: space-between; padding: 30px clamp(24px, 6vw, 100px); font-size: 12px; color: var(--ink-dim); border-top: 1px solid var(--glass-brd); letter-spacing: 1px; flex-wrap: wrap; gap: 10px; }
+.foot__mono { font-family: "JetBrains Mono", monospace; color: var(--cyan); }
+
+/* ░░ Reveal animations ░░ */
+.reveal { opacity: 0; transform: translateY(36px); filter: blur(8px); transition: opacity 0.9s var(--ease), transform 0.9s var(--ease), filter 0.9s var(--ease); }
+.reveal.is-in { opacity: 1; transform: none; filter: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  .reveal { opacity: 1; transform: none; filter: none; }
+}
+
+</style>
+</head>
+<body>
+  <!-- ░░ Custom cursor ░░ -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- ░░ Boot / preloader sequence ░░ -->
+  <div class="boot" id="boot">
+    <div class="boot__core">
+      <div class="boot__ring"></div>
+      <div class="boot__ring boot__ring--2"></div>
+      <div class="boot__glyph">⟁</div>
+    </div>
+    <div class="boot__log" id="bootLog"></div>
+    <div class="boot__bar"><span id="bootBar"></span></div>
+    <div class="boot__hint">INITIALIZING AETHER CORE</div>
+  </div>
+
+  <!-- ░░ WebGL canvas (particle universe) ░░ -->
+  <canvas id="webgl"></canvas>
+
+  <!-- ░░ Atmospheric overlays ░░ -->
+  <div class="grain"></div>
+  <div class="scanlines"></div>
+  <div class="vignette"></div>
+
+  <!-- ░░ HUD frame ░░ -->
+  <div class="hud" aria-hidden="true">
+    <span class="hud__corner hud__corner--tl"></span>
+    <span class="hud__corner hud__corner--tr"></span>
+    <span class="hud__corner hud__corner--bl"></span>
+    <span class="hud__corner hud__corner--br"></span>
+    <div class="hud__readout" id="hudReadout">SYS//ONLINE · LAT 0.000 · LON 0.000</div>
+    <div class="hud__pulse"><span></span></div>
+  </div>
+
+  <!-- ░░ Navigation ░░ -->
+  <header class="nav" id="nav">
+    <a class="nav__brand" href="#hero" data-link>
+      <span class="nav__mark">◈</span> AETHER
+    </a>
+    <nav class="nav__links">
+      <a href="#hero" data-link>Origin</a>
+      <a href="#systems" data-link>Systems</a>
+      <a href="#nexus" data-link>Nexus</a>
+      <a href="#archive" data-link>Archive</a>
+    </nav>
+    <button class="nav__cta" data-magnetic>ENTER ▸</button>
+  </header>
+
+  <!-- ░░ Content sections ░░ -->
+  <main>
+    <!-- HERO -->
+    <section class="section hero" id="hero">
+      <div class="hero__kicker reveal" data-split>[ TRANSMISSION 2099 · SECTOR ∞ ]</div>
+      <h1 class="hero__title">
+        <span class="line reveal" data-split>BEYOND THE</span>
+        <span class="line line--glow reveal" data-split>HOLOGRAM</span>
+      </h1>
+      <p class="hero__sub reveal" data-split>
+        A surreal digital universe where light becomes interface. Drift through
+        cinematic particle fields, abstract geometries and living holographic matter.
+      </p>
+      <div class="hero__actions reveal" data-split>
+        <button class="btn btn--neon" data-magnetic>Launch Experience</button>
+        <button class="btn btn--ghost" data-magnetic>Watch Intro</button>
+      </div>
+      <div class="hero__scroll">
+        <span class="hero__scroll-line"></span>
+        SCROLL TO DESCEND
+      </div>
+    </section>
+
+    <!-- SYSTEMS -->
+    <section class="section systems" id="systems">
+      <div class="section__head">
+        <span class="section__idx">01</span>
+        <h2 class="section__title reveal" data-split>Living Systems</h2>
+        <p class="section__lead reveal" data-split>
+          Modular holo-interfaces that respond to your presence. Tilt, glow and
+          parallax compose a UI that feels alive.
+        </p>
+      </div>
+      <div class="cards" id="cards">
+        <!-- cards injected by JS -->
+      </div>
+    </section>
+
+    <!-- NEXUS -->
+    <section class="section nexus" id="nexus">
+      <div class="nexus__inner">
+        <div class="nexus__copy">
+          <span class="section__idx">02</span>
+          <h2 class="section__title reveal" data-split>The Nexus Core</h2>
+          <p class="section__lead reveal" data-split>
+            At the center of the universe pulses a reactive core — a fluid
+            simulation of glowing matter that bends to motion and sound.
+          </p>
+          <ul class="nexus__stats">
+            <li><b data-count="8400000">0</b><span>Particles Streamed</span></li>
+            <li><b data-count="120">0</b><span>FPS Holo-Render</span></li>
+            <li><b data-count="64">0</b><span>Depth Layers</span></li>
+          </ul>
+        </div>
+        <div class="nexus__orb" data-magnetic>
+          <div class="orb">
+            <span class="orb__core"></span>
+            <span class="orb__shell"></span>
+            <span class="orb__shell orb__shell--2"></span>
+            <span class="orb__ring"></span>
+            <span class="orb__ring orb__ring--2"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARCHIVE -->
+    <section class="section archive" id="archive">
+      <div class="section__head">
+        <span class="section__idx">03</span>
+        <h2 class="section__title reveal" data-split>Signal Archive</h2>
+        <p class="section__lead reveal" data-split>
+          Fragments recovered from the deep grid. Hover to decrypt.
+        </p>
+      </div>
+      <div class="archive__grid" id="archiveGrid"></div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section closing" id="closing">
+      <h2 class="closing__title reveal" data-split>READY TO TRANSCEND?</h2>
+      <p class="closing__sub reveal" data-split>Step through the hologram. The universe is rendering.</p>
+      <button class="btn btn--neon btn--lg" data-magnetic>Initialize Journey</button>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>AETHER © 2099 — A speculative interface</span>
+    <span class="foot__mono" id="footClock">--:--:--</span>
+  </footer>
+
+  <!-- Three.js (WebGL particle universe) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+/* ══════════════════════════════════════════════════════════════
+   AETHER — WebGL particle universe (Three.js)
+   Cinematic particle simulation + abstract geometry + camera drift
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  "use strict";
+
+  if (typeof THREE === "undefined") {
+    console.warn("[AETHER] Three.js not loaded — skipping WebGL scene.");
+    return;
+  }
+
+  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const canvas = document.getElementById("webgl");
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x05060f, 0.018);
+
+  const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 200);
+  camera.position.set(0, 0, 34);
+
+  // ── Palette ──────────────────────────────────────────────
+  const PALETTE = [
+    new THREE.Color(0x38f9ff), // cyan
+    new THREE.Color(0x8b5cff), // violet
+    new THREE.Color(0xff3df0), // magenta
+    new THREE.Color(0xb6ff3d), // lime
+  ];
+
+  // ── Circular sprite texture (soft glowing dot) ───────────
+  function makeDotTexture() {
+    const s = 64;
+    const c = document.createElement("canvas");
+    c.width = c.height = s;
+    const ctx = c.getContext("2d");
+    const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    g.addColorStop(0, "rgba(255,255,255,1)");
+    g.addColorStop(0.25, "rgba(255,255,255,0.9)");
+    g.addColorStop(0.5, "rgba(180,200,255,0.35)");
+    g.addColorStop(1, "rgba(180,200,255,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, s, s);
+    const t = new THREE.Texture(c);
+    t.needsUpdate = true;
+    return t;
+  }
+  const dotTex = makeDotTexture();
+
+  // ── 1. Deep particle nebula (the universe) ───────────────
+  const COUNT = prefersReduced ? 1400 : 5200;
+  const positions = new Float32Array(COUNT * 3);
+  const colors = new Float32Array(COUNT * 3);
+  const seeds = new Float32Array(COUNT); // per-particle phase for drift
+
+  for (let i = 0; i < COUNT; i++) {
+    // distribute in a flattened galactic disc with spiral bias
+    const r = Math.pow(Math.random(), 0.6) * 60;
+    const branch = (i % 3) / 3 * Math.PI * 2;
+    const spin = r * 0.09;
+    const scatter = (Math.random() - 0.5) * 6 * (1 + r * 0.02);
+    const a = branch + spin + (Math.random() - 0.5) * 0.6;
+
+    positions[i * 3] = Math.cos(a) * r + scatter;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 14 + scatter * 0.4;
+    positions[i * 3 + 2] = Math.sin(a) * r + scatter;
+
+    const col = PALETTE[Math.floor(Math.random() * PALETTE.length)].clone();
+    col.multiplyScalar(0.55 + Math.random() * 0.45);
+    colors[i * 3] = col.r;
+    colors[i * 3 + 1] = col.g;
+    colors[i * 3 + 2] = col.b;
+
+    seeds[i] = Math.random() * Math.PI * 2;
+  }
+
+  const nebGeo = new THREE.BufferGeometry();
+  nebGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  nebGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+  const nebMat = new THREE.PointsMaterial({
+    size: 0.55,
+    map: dotTex,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.92,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    sizeAttenuation: true,
+  });
+  const nebula = new THREE.Points(nebGeo, nebMat);
+  scene.add(nebula);
+
+  // ── 2. Foreground drifting "data motes" (parallax dust) ──
+  const DUST = prefersReduced ? 300 : 900;
+  const dustPos = new Float32Array(DUST * 3);
+  for (let i = 0; i < DUST; i++) {
+    dustPos[i * 3] = (Math.random() - 0.5) * 80;
+    dustPos[i * 3 + 1] = (Math.random() - 0.5) * 50;
+    dustPos[i * 3 + 2] = (Math.random() - 0.5) * 40 + 10;
+  }
+  const dustGeo = new THREE.BufferGeometry();
+  dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
+  const dustMat = new THREE.PointsMaterial({
+    size: 0.22, map: dotTex, color: 0x9fd8ff, transparent: true,
+    opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  const dust = new THREE.Points(dustGeo, dustMat);
+  scene.add(dust);
+
+  // ── 3. Abstract wireframe icosahedron (floating relic) ───
+  const relicGeo = new THREE.IcosahedronGeometry(7, 1);
+  const relicMat = new THREE.MeshBasicMaterial({
+    color: 0x38f9ff, wireframe: true, transparent: true, opacity: 0.12,
+  });
+  const relic = new THREE.Mesh(relicGeo, relicMat);
+  relic.position.set(18, -4, -18);
+  scene.add(relic);
+
+  const relic2 = new THREE.Mesh(
+    new THREE.TorusKnotGeometry(4, 1.1, 90, 12),
+    new THREE.MeshBasicMaterial({ color: 0xff3df0, wireframe: true, transparent: true, opacity: 0.1 })
+  );
+  relic2.position.set(-22, 8, -24);
+  scene.add(relic2);
+
+  // ── Interaction state ────────────────────────────────────
+  const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+  let scrollN = 0; // normalized scroll 0..1
+
+  window.addEventListener("pointermove", (e) => {
+    pointer.tx = (e.clientX / window.innerWidth - 0.5);
+    pointer.ty = (e.clientY / window.innerHeight - 0.5);
+  });
+  window.addEventListener("scroll", () => {
+    const max = document.body.scrollHeight - window.innerHeight;
+    scrollN = max > 0 ? window.scrollY / max : 0;
+  }, { passive: true });
+
+  // ── Resize ───────────────────────────────────────────────
+  window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  });
+
+  // ── Animation loop ───────────────────────────────────────
+  const clock = new THREE.Clock();
+  const basePos = positions.slice(); // copy for vertical wave displacement
+
+  function tick() {
+    const t = clock.getElapsedTime();
+
+    // smooth pointer easing
+    pointer.x += (pointer.tx - pointer.x) * 0.05;
+    pointer.y += (pointer.ty - pointer.y) * 0.05;
+
+    // slow galactic rotation
+    nebula.rotation.y = t * 0.04;
+    nebula.rotation.z = Math.sin(t * 0.05) * 0.04;
+
+    // gentle vertical "breathing" wave through the particle field
+    if (!prefersReduced) {
+      const arr = nebGeo.attributes.position.array;
+      for (let i = 0; i < COUNT; i++) {
+        const ix = i * 3;
+        arr[ix + 1] = basePos[ix + 1] + Math.sin(t * 0.6 + seeds[i]) * 0.6;
+      }
+      nebGeo.attributes.position.needsUpdate = true;
+    }
+
+    dust.rotation.y = -t * 0.02;
+    dust.position.y = Math.sin(t * 0.3) * 1.5;
+
+    relic.rotation.x = t * 0.18;
+    relic.rotation.y = t * 0.12;
+    relic2.rotation.z = t * 0.2;
+    relic2.rotation.x = -t * 0.1;
+
+    // camera: parallax from pointer + cinematic dolly on scroll
+    const targetX = pointer.x * 8;
+    const targetY = -pointer.y * 6 + scrollN * 4;
+    camera.position.x += (targetX - camera.position.x) * 0.04;
+    camera.position.y += (targetY - camera.position.y) * 0.04;
+    camera.position.z = 34 - scrollN * 16; // dolly inward as you descend
+    camera.lookAt(0, scrollN * 2, 0);
+    camera.rotation.z = pointer.x * 0.05;
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(tick);
+  }
+  tick();
+
+  // expose a tiny hook for main.js (e.g. burst on CTA) if desired
+  window.AETHER = window.AETHER || {};
+  window.AETHER.pulse = function () {
+    relicMat.opacity = 0.5;
+    setTimeout(() => (relicMat.opacity = 0.12), 280);
+  };
+})();
+
+</script>
+  <script>
+/* ══════════════════════════════════════════════════════════════
+   AETHER — UI interaction layer
+   Boot sequence · custom cursor · magnetic buttons · 3D tilt cards
+   reveal-on-scroll · counters · nav behaviour · injected content
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  "use strict";
+
+  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const $ = (s, ctx = document) => ctx.querySelector(s);
+  const $$ = (s, ctx = document) => Array.from(ctx.querySelectorAll(s));
+
+  /* ── Inject system cards ──────────────────────────────── */
+  const CARDS = [
+    { glyph: "◈", color: "#38f9ff", tag: "SYS·01", title: "Holo Interfaces", text: "Glassmorphic panels that float in depth and tilt toward your gaze in real time." },
+    { glyph: "✧", color: "#8b5cff", tag: "SYS·02", title: "Particle Fields", text: "Millions of additive light motes simulate a living, breathing cosmic medium." },
+    { glyph: "❖", color: "#ff3df0", tag: "SYS·03", title: "Fluid Motion", text: "Eased camera dollies and parallax drift create cinematic, weightless transitions." },
+    { glyph: "⟁", color: "#b6ff3d", tag: "SYS·04", title: "Reactive Core", text: "An abstract energy nucleus pulses and warps in response to presence and scroll." },
+    { glyph: "◉", color: "#38f9ff", tag: "SYS·05", title: "Depth Layers", text: "Stacked z-planes and blur gradients fabricate impossible spatial dimensionality." },
+    { glyph: "⬡", color: "#8b5cff", tag: "SYS·06", title: "Neon Gradients", text: "Animated multi-stop spectra wash every surface in shifting electric color." },
+  ];
+  const cardWrap = $("#cards");
+  if (cardWrap) {
+    cardWrap.innerHTML = CARDS.map(
+      (c) => `
+      <article class="card reveal" data-tilt data-split>
+        <span class="card__tag">${c.tag}</span>
+        <span class="card__glyph" style="color:${c.color}">${c.glyph}</span>
+        <h3 class="card__title">${c.title}</h3>
+        <p class="card__text">${c.text}</p>
+        <div class="card__line"></div>
+      </article>`
+    ).join("");
+  }
+
+  /* ── Inject archive fragments ─────────────────────────── */
+  const FRAGS = [
+    { id: "FRG-0x91A", title: "Echo Drift", meta: "DECRYPTED · 84%" },
+    { id: "FRG-0x44C", title: "Null Horizon", meta: "DECRYPTED · 61%" },
+    { id: "FRG-0x7E2", title: "Ghost Lattice", meta: "DECRYPTED · 97%" },
+    { id: "FRG-0x10F", title: "Solar Whisper", meta: "DECRYPTED · 73%" },
+    { id: "FRG-0xBB8", title: "Void Bloom", meta: "DECRYPTED · 52%" },
+    { id: "FRG-0x2D6", title: "Quantum Tide", meta: "DECRYPTED · 88%" },
+    { id: "FRG-0xE07", title: "Mirror Pulse", meta: "DECRYPTED · 69%" },
+    { id: "FRG-0x5A3", title: "Aether Seed", meta: "DECRYPTED · 100%" },
+  ];
+  const grid = $("#archiveGrid");
+  if (grid) {
+    grid.innerHTML = FRAGS.map((f) => {
+      const bars = Array.from({ length: 7 })
+        .map(() => `<i style="animation-delay:${(Math.random() * 1.2).toFixed(2)}s"></i>`)
+        .join("");
+      return `
+        <article class="frag reveal" data-split>
+          <div>
+            <span class="frag__id">${f.id}</span>
+            <h3 class="frag__title">${f.title}</h3>
+          </div>
+          <div>
+            <div class="frag__bars">${bars}</div>
+            <p class="frag__meta">${f.meta}</p>
+          </div>
+        </article>`;
+    }).join("");
+  }
+
+  /* ── Custom cursor ────────────────────────────────────── */
+  const cursor = $("#cursor");
+  const ring = $("#cursorRing");
+  if (cursor && ring && window.matchMedia("(hover: hover)").matches) {
+    let rx = 0, ry = 0, mx = 0, my = 0;
+    window.addEventListener("pointermove", (e) => {
+      mx = e.clientX; my = e.clientY;
+      cursor.style.transform = `translate(${mx}px, ${my}px) translate(-50%,-50%)`;
+    });
+    (function follow() {
+      rx += (mx - rx) * 0.16; ry += (my - ry) * 0.16;
+      ring.style.transform = `translate(${rx}px, ${ry}px) translate(-50%,-50%)`;
+      requestAnimationFrame(follow);
+    })();
+    const hoverable = "a, button, [data-magnetic], [data-tilt], .frag";
+    document.addEventListener("pointerover", (e) => {
+      if (e.target.closest(hoverable)) ring.classList.add("is-hover");
+    });
+    document.addEventListener("pointerout", (e) => {
+      if (e.target.closest(hoverable)) ring.classList.remove("is-hover");
+    });
+  }
+
+  /* ── Magnetic elements ────────────────────────────────── */
+  if (!prefersReduced) {
+    $$("[data-magnetic]").forEach((el) => {
+      const strength = 0.35;
+      el.addEventListener("pointermove", (e) => {
+        const r = el.getBoundingClientRect();
+        const x = e.clientX - (r.left + r.width / 2);
+        const y = e.clientY - (r.top + r.height / 2);
+        el.style.transform = `translate(${x * strength}px, ${y * strength}px)`;
+      });
+      el.addEventListener("pointerleave", () => {
+        el.style.transform = "translate(0,0)";
+      });
+    });
+  }
+
+  /* ── 3D tilt cards ────────────────────────────────────── */
+  if (!prefersReduced) {
+    $$("[data-tilt]").forEach((card) => {
+      card.addEventListener("pointermove", (e) => {
+        const r = card.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width;
+        const py = (e.clientY - r.top) / r.height;
+        const rx = (py - 0.5) * -12;
+        const ry = (px - 0.5) * 14;
+        card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-6px)`;
+        card.style.setProperty("--mx", `${px * 100}%`);
+        card.style.setProperty("--my", `${py * 100}%`);
+      });
+      card.addEventListener("pointerleave", () => {
+        card.style.transform = "perspective(900px) rotateX(0) rotateY(0)";
+      });
+    });
+  }
+
+  /* ── Reveal on scroll ─────────────────────────────────── */
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting) {
+          en.target.classList.add("is-in");
+          io.unobserve(en.target);
+        }
+      });
+    },
+    { threshold: 0.15, rootMargin: "0px 0px -8% 0px" }
+  );
+  $$(".reveal").forEach((el) => io.observe(el));
+
+  /* ── Animated counters ────────────────────────────────── */
+  const fmt = (n) => n.toLocaleString("en-US");
+  const counterIO = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        const el = en.target;
+        const target = parseInt(el.dataset.count, 10);
+        const dur = 1600;
+        const start = performance.now();
+        function step(now) {
+          const p = Math.min((now - start) / dur, 1);
+          const eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = fmt(Math.floor(target * eased));
+          if (p < 1) requestAnimationFrame(step);
+          else el.textContent = fmt(target);
+        }
+        requestAnimationFrame(step);
+        counterIO.unobserve(el);
+      });
+    },
+    { threshold: 0.5 }
+  );
+  $$("[data-count]").forEach((el) => counterIO.observe(el));
+
+  /* ── Nav: hide on scroll-down, show on scroll-up ─────── */
+  const nav = $("#nav");
+  let lastY = 0;
+  window.addEventListener("scroll", () => {
+    const y = window.scrollY;
+    nav.classList.toggle("is-scrolled", y > 40);
+    if (y > lastY && y > 220) nav.classList.add("is-hidden");
+    else nav.classList.remove("is-hidden");
+    lastY = y;
+  }, { passive: true });
+
+  /* ── HUD readout (fake telemetry) ─────────────────────── */
+  const readout = $("#hudReadout");
+  if (readout) {
+    setInterval(() => {
+      const lat = (Math.sin(Date.now() / 3000) * 89).toFixed(3);
+      const lon = (Math.cos(Date.now() / 2200) * 179).toFixed(3);
+      readout.textContent = `SYS//ONLINE · LAT ${lat} · LON ${lon}`;
+    }, 120);
+  }
+
+  /* ── Footer clock ─────────────────────────────────────── */
+  const clk = $("#footClock");
+  if (clk) {
+    const tick = () => {
+      const d = new Date();
+      clk.textContent = d.toTimeString().slice(0, 8) + " UTC" + (d.getTimezoneOffset() <= 0 ? "+" : "-");
+    };
+    tick();
+    setInterval(tick, 1000);
+  }
+
+  /* ── CTA pulse → poke the WebGL relics ────────────────── */
+  $$(".btn--neon").forEach((b) =>
+    b.addEventListener("click", () => window.AETHER && window.AETHER.pulse && window.AETHER.pulse())
+  );
+
+  /* ── Boot sequence ────────────────────────────────────── */
+  const boot = $("#boot");
+  const bootLog = $("#bootLog");
+  const bootBar = $("#bootBar");
+  const LINES = [
+    "booting aether kernel…",
+    "mounting holographic matrix…",
+    "seeding particle universe…",
+    "calibrating depth layers…",
+    "syncing neon spectrum…",
+    "core online ◈",
+  ];
+  let li = 0, prog = 0;
+  function runBoot() {
+    if (!boot) return;
+    const iv = setInterval(() => {
+      prog = Math.min(prog + Math.random() * 22 + 8, 100);
+      if (bootBar) bootBar.style.width = prog + "%";
+      if (bootLog && li < LINES.length) {
+        bootLog.textContent = LINES[Math.min(li, LINES.length - 1)];
+        li++;
+      }
+      if (prog >= 100) {
+        clearInterval(iv);
+        if (bootLog) bootLog.textContent = LINES[LINES.length - 1];
+        setTimeout(() => {
+          boot.classList.add("is-done");
+          document.body.style.overflow = "";
+        }, 500);
+      }
+    }, 280);
+  }
+  document.body.style.overflow = "hidden";
+  if (prefersReduced) {
+    boot && boot.classList.add("is-done");
+    document.body.style.overflow = "";
+  } else {
+    window.addEventListener("load", runBoot);
+    // fallback in case load already fired
+    if (document.readyState === "complete") runBoot();
+  }
+})();
+
+</script>
+</body>
+</html>
