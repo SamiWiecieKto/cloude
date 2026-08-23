@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GENEZA — symulator życia planetarnego</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪐</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+    { "imports": { "three": "./lib/three.module.js" } }
+  </script>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+
+  <!-- Pasek statystyk -->
+  <header id="topbar">
+    <div class="logo">🪐 GENEZA</div>
+    <div class="stats">
+      <div class="stat"><small>Wiek planety</small><span id="stTime">0 mln lat</span></div>
+      <div class="stat"><small>Temperatura</small><span id="stTemp">—</span></div>
+      <div class="stat"><small>Życie</small><span id="stBio">—</span></div>
+      <div class="stat"><small>Etap rozwoju</small><span id="stStage">☁️ Świat jałowy</span></div>
+      <div class="stat points"><small>Punkty Genezy</small><span id="stPoints">60 PG</span></div>
+    </div>
+  </header>
+
+  <!-- Panel lewy: parametry / interwencje -->
+  <aside id="leftPanel" class="panel">
+    <div class="tabbar tabbar-left">
+      <button class="active" data-tab="paramTab">🎛️ Parametry</button>
+      <button data-tab="intervPanel">⚡ Interwencje</button>
+    </div>
+    <div id="paramTab" class="tab-page active">
+      <div id="paramPanel"></div>
+      <div id="preview"></div>
+      <button id="btnStart">🚀 ROZPOCZNIJ SYMULACJĘ</button>
+    </div>
+    <div id="intervPanel" class="tab-page"></div>
+  </aside>
+
+  <!-- Panel prawy: dziennik / życie / galeria -->
+  <aside id="rightPanel" class="panel">
+    <div class="tabbar">
+      <button class="active" data-tab="logPanel">📜 Dziennik</button>
+      <button data-tab="lifePanel">🧬 Życie</button>
+      <button data-tab="galleryPanel">🖼️ Galeria</button>
+    </div>
+    <div id="logPanel" class="tab-page active"><p class="hint">Tu pojawi się historia twojej planety.</p></div>
+    <div id="lifePanel" class="tab-page"></div>
+    <div id="galleryPanel" class="tab-page"><p class="hint">Jeszcze nic tu nie wyewoluowało…</p></div>
+  </aside>
+
+  <!-- Sterowanie czasem -->
+  <footer id="timebar">
+    <button class="speed-btn" data-speed="pause">⏸️</button>
+    <button class="speed-btn" data-speed="1">1×</button>
+    <button class="speed-btn" data-speed="10">10×</button>
+    <button class="speed-btn" data-speed="100">100×</button>
+    <span class="time-hint">1× = 1 mln lat / s</span>
+    <button id="btnRestart" title="Nowa planeta">🔄</button>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
