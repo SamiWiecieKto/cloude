@@ -1,6 +1,6 @@
 // GENEZA — widok 3D planety (three.js): proceduralna tekstura, chmury,
 // poświata atmosfery, obrót myszą (osie X/Y) i zoom kółkiem.
-import * as THREE from '../lib/three.module.js';
+import * as THREE from 'three';   // rozwiązywane przez importmapę w index.html
 import { mulberry32 } from './simulation.js';
 
 // ── Prosty szum wartościowy + fBm ─────────────────────────────────────────
