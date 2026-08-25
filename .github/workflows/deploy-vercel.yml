@@ -1,0 +1,43 @@
+name: Deploy sites to Vercel
+
+on:
+  workflow_dispatch:
+    inputs:
+      vercel_token:
+        description: "Vercel personal access token"
+        required: true
+        type: string
+      site:
+        description: "Which site to deploy (all | agencja-seo | pozycjonowanie-stron)"
+        required: false
+        default: "all"
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mask token
+        run: echo "::add-mask::${{ inputs.vercel_token }}"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Deploy agencja-seo
+        if: ${{ inputs.site == 'all' || inputs.site == 'agencja-seo' }}
+        working-directory: sites/agencja-seo
+        run: |
+          npx vercel@latest deploy --prod --yes --token "${{ inputs.vercel_token }}" 2>&1 | tee deploy.log
+          echo "--- aliases ---"
+          npx vercel@latest project ls --token "${{ inputs.vercel_token }}" 2>&1 | grep -i agencja || true
+
+      - name: Deploy pozycjonowanie-stron
+        if: ${{ inputs.site == 'all' || inputs.site == 'pozycjonowanie-stron' }}
+        working-directory: sites/pozycjonowanie-stron
+        run: |
+          npx vercel@latest deploy --prod --yes --token "${{ inputs.vercel_token }}" 2>&1 | tee deploy.log
+          echo "--- aliases ---"
+          npx vercel@latest project ls --token "${{ inputs.vercel_token }}" 2>&1 | grep -i pozycjonowanie || true
