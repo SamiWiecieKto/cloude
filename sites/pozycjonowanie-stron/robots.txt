@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pozycjonowanie-stron.vercel.app/sitemap.xml

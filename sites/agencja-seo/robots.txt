@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://agencja-seo.vercel.app/sitemap.xml
