@@ -3,22 +3,30 @@ name: Deploy sites to Vercel
 on:
   workflow_dispatch:
     inputs:
-      vercel_token:
-        description: "Vercel personal access token"
-        required: true
-        type: string
       site:
         description: "Which site to deploy (all | agencja-seo | pozycjonowanie-stron)"
         required: false
         default: "all"
         type: string
+  push:
+    branches:
+      - claude/seonim-agency-pages-ya9f7z
+    paths:
+      - "sites/**"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      SITE: ${{ inputs.site || 'all' }}
     steps:
-      - name: Mask token
-        run: echo "::add-mask::${{ inputs.vercel_token }}"
+      - name: Check secret
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::Repo secret VERCEL_TOKEN is not set. Add it in Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
 
       - uses: actions/checkout@v4
 
@@ -27,17 +35,17 @@ jobs:
           node-version: 20
 
       - name: Deploy agencja-seo
-        if: ${{ inputs.site == 'all' || inputs.site == 'agencja-seo' }}
+        if: ${{ env.SITE == 'all' || env.SITE == 'agencja-seo' }}
         working-directory: sites/agencja-seo
         run: |
-          npx vercel@latest deploy --prod --yes --token "${{ inputs.vercel_token }}" 2>&1 | tee deploy.log
-          echo "--- aliases ---"
-          npx vercel@latest project ls --token "${{ inputs.vercel_token }}" 2>&1 | grep -i agencja || true
+          npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
+          echo "--- project domains ---"
+          npx vercel@latest project ls --token "$VERCEL_TOKEN" 2>&1 | grep -i agencja || true
 
       - name: Deploy pozycjonowanie-stron
-        if: ${{ inputs.site == 'all' || inputs.site == 'pozycjonowanie-stron' }}
+        if: ${{ env.SITE == 'all' || env.SITE == 'pozycjonowanie-stron' }}
         working-directory: sites/pozycjonowanie-stron
         run: |
-          npx vercel@latest deploy --prod --yes --token "${{ inputs.vercel_token }}" 2>&1 | tee deploy.log
-          echo "--- aliases ---"
-          npx vercel@latest project ls --token "${{ inputs.vercel_token }}" 2>&1 | grep -i pozycjonowanie || true
+          npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
+          echo "--- project domains ---"
+          npx vercel@latest project ls --token "$VERCEL_TOKEN" 2>&1 | grep -i pozycjonowanie || true
