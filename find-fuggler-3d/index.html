@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Znajdź Fugglera 3D</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;font-family:Inter,system-ui,Arial,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;inset:0;pointer-events:none;color:#fff;text-shadow:0 2px 4px #000;z-index:10}
+#top{position:absolute;top:max(10px,env(safe-area-inset-top));left:12px;right:12px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.card{background:#111b;border:1px solid #ffffff24;border-radius:12px;padding:8px 11px;backdrop-filter:blur(5px);box-shadow:0 5px 20px #0006}
+#title{font-weight:900;font-size:14px;letter-spacing:.02em}#found{font-weight:800;font-size:13px;color:#ffe097}
+#cross{position:absolute;left:50%;top:50%;width:18px;height:18px;transform:translate(-50%,-50%)}
+#cross:before,#cross:after{content:"";position:absolute;background:#fff;border-radius:2px;box-shadow:0 0 4px #000}
+#cross:before{width:2px;height:18px;left:8px;top:0}#cross:after{height:2px;width:18px;top:8px;left:0}
+#prompt{position:absolute;left:50%;top:calc(50% + 28px);transform:translateX(-50%);padding:7px 10px;border-radius:8px;background:#0009;border:1px solid #ffffff22;font-size:12px;font-weight:800;opacity:0;transition:.12s;white-space:nowrap}
+#toast{position:absolute;left:50%;top:18%;transform:translateX(-50%);background:#17120fee;border:1px solid #d8a65a;border-radius:12px;padding:10px 14px;font-weight:900;opacity:0;transition:.25s;max-width:82vw;text-align:center}
+#joy{position:absolute;left:20px;bottom:max(22px,calc(env(safe-area-inset-bottom) + 14px));width:126px;height:126px;border-radius:50%;background:#ffffff13;border:2px solid #ffffff2b;pointer-events:auto;box-shadow:inset 0 0 30px #0005}
+#stick{position:absolute;left:38px;top:38px;width:50px;height:50px;border-radius:50%;background:#ffffff46;border:2px solid #ffffff55;box-shadow:0 4px 14px #0008}
+#actions{position:absolute;right:18px;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));display:grid;grid-template-columns:70px 70px;gap:10px;pointer-events:auto}
+.btn{height:58px;border-radius:16px;border:1px solid #ffffff35;background:#171717c7;color:#fff;font-weight:900;font-size:12px;box-shadow:0 4px 15px #0008;touch-action:manipulation}.btn:active{transform:scale(.96);background:#323232df}
+#interact{grid-column:1/3;background:#6b321bdc;border-color:#df8a52}#drop{display:none}
+#lookHint{position:absolute;right:14px;bottom:160px;font-size:10px;opacity:.55;text-align:right}
+#start{position:fixed;inset:0;z-index:30;background:linear-gradient(#79a8c9,#d7c49b);display:flex;align-items:center;justify-content:center;padding:20px;color:#221d18;text-align:center}
+#start .panel{max-width:520px;background:#f8ead8e8;border:2px solid #6d5542;border-radius:20px;padding:22px;box-shadow:0 20px 60px #0005}
+#start h1{margin:0 0 8px;font-size:30px}#start p{line-height:1.42;margin:7px 0}#start button{margin-top:10px;border:0;border-radius:14px;padding:14px 22px;font-size:16px;font-weight:900;background:#5b2a19;color:white}
+#complete{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:#0b0a08d9;color:#fff;text-align:center;padding:20px}#complete .panel{background:#211b18;border:1px solid #a97c55;border-radius:18px;padding:22px;max-width:430px}#complete button{padding:12px 18px;border:0;border-radius:12px;font-weight:900;background:#b65a2b;color:white}
+@media(min-width:900px){#joy,#actions,#lookHint{opacity:.7}#joy{width:110px;height:110px}#stick{left:32px;top:32px;width:44px;height:44px}}
+</style>
+</head>
+<body>
+<div id="start"><div class="panel"><h1>Znajdź Fugglera 3D</h1><p>Przeszukaj małe miasto i znajdź wszystkie ukryte zębate stworki.</p><p><b>Telefon:</b> lewy joystick = ruch, przesuwaj palcem po prawej części ekranu = rozglądanie.</p><p>Celuj w drzwi lub przedmiot i użyj przycisku <b>AKCJA</b>.</p><button id="play">WEJDŹ DO MIASTA</button></div></div>
+<div id="hud">
+  <div id="top"><div class="card"><div id="title">🏙️ Miasteczko Fugglerów</div></div><div class="card" id="found">Znalezione: 0 / 6</div></div>
+  <div id="cross"></div><div id="prompt"></div><div id="toast"></div>
+  <div id="joy"><div id="stick"></div></div>
+  <div id="lookHint">PRZESUWAJ PALCEM<br>ABY SIĘ ROZGLĄDAĆ</div>
+  <div id="actions"><button class="btn" id="interact">AKCJA</button><button class="btn" id="drop">UPUŚĆ</button><button class="btn" id="jump">SKOK</button></div>
+</div>
+<div id="complete"><div class="panel"><h2>🎉 Znalazłeś wszystkie!</h2><p>Całe miasteczko zostało przeszukane.</p><button onclick="location.reload()">ZAGRAJ JESZCZE RAZ</button></div></div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x86b4d3);scene.fog=new THREE.Fog(0x86b4d3,34,92);
+const camera=new THREE.PerspectiveCamera(68,innerWidth/innerHeight,.08,130);camera.rotation.order='YXZ';
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.prepend(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xddeeff,0x6f674d,2.0));const sun=new THREE.DirectionalLight(0xfff2cf,2.2);sun.position.set(22,34,16);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-50;sun.shadow.camera.right=50;sun.shadow.camera.top=50;sun.shadow.camera.bottom=-50;scene.add(sun);
+
+const mat=(c)=>new THREE.MeshStandardMaterial({color:c,roughness:.83});
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(120,120),mat(0x66804b));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+const roadMat=mat(0x4b5055),walkMat=mat(0xa8a49a);
+for(let x=-36;x<=36;x+=24){let r=new THREE.Mesh(new THREE.BoxGeometry(7,.08,90),roadMat);r.position.set(x,.04,0);r.receiveShadow=true;scene.add(r)}
+for(let z=-36;z<=36;z+=24){let r=new THREE.Mesh(new THREE.BoxGeometry(90,.08,7),roadMat);r.position.set(0,.05,z);r.receiveShadow=true;scene.add(r)}
+
+const colliders=[];const interactables=[];const doors=[];const collectibles=[];let held=null,found=0;
+function box(x,y,z,w,h,d,color,solid=true){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);if(solid)colliders.push({obj:m,w,d});return m}
+function wall(x,z,w,d,h=3.2,c=0xd2b38b){return box(x,h/2,z,w,h,d,c,true)}
+function addWindow(x,y,z,rot=0){const m=new THREE.Mesh(new THREE.BoxGeometry(1.05,.85,.06),new THREE.MeshStandardMaterial({color:0x87c9e8,metalness:.05,roughness:.2,emissive:0x18323f,emissiveIntensity:.35}));m.position.set(x,y,z);m.rotation.y=rot;scene.add(m)}
+function addDoor(x,z,rot=0){const pivot=new THREE.Group();pivot.position.set(x,z?0:0,z);pivot.rotation.y=rot;scene.add(pivot);const d=new THREE.Mesh(new THREE.BoxGeometry(1.05,2.15,.12),mat(0x70462c));d.position.set(.52,1.075,0);d.castShadow=true;pivot.add(d);pivot.userData={type:'door',open:false,label:'OTWÓRZ DRZWI',doorMesh:d};interactables.push(pivot);doors.push(pivot);return pivot}
+function room(cx,cz,w=8,d=8,color=0xcaa475,doorSide='south'){
+ const t=.35,h=3.1;
+ if(doorSide==='south'){wall(cx-w/2,cz,w? t:t,d,h,color);wall(cx+w/2,cz,t,d,h,color);wall(cx,cz-d/2,w-2.1,t,h,color);wall(cx-((w/2)-.7),cz-d/2,1.4,t,h,color);wall(cx+((w/2)-.7),cz-d/2,1.4,t,h,color);addDoor(cx-.52,cz-d/2-.05,0)}
+ else{wall(cx-w/2,cz,t,d,h,color);wall(cx+w/2,cz,t,d,h,color);wall(cx,cz+d/2,w-2.1,t,h,color);wall(cx-((w/2)-.7),cz+d/2,1.4,t,h,color);wall(cx+((w/2)-.7),cz+d/2,1.4,t,h,color);addDoor(cx+.52,cz+d/2+.05,Math.PI)}
+ wall(cx,cz+d/2,w,t,h,color);let roof=box(cx,h+.12,cz,w+.2,.22,d+.2,0x694c3d,false);roof.castShadow=true;let floor=box(cx,.08,cz,w-.4,.16,d-.4,0xb8aa96,false);floor.receiveShadow=true;
+ addWindow(cx-w/2-.02,1.8,cz-1.5,Math.PI/2);addWindow(cx+w/2+.02,1.8,cz+1.5,Math.PI/2);
+}
+// Accessible shops / houses
+room(-12,-12,8.5,8.5,0xc78e6e,'south');room(12,-12,9,8,0xe0bd73,'south');room(-12,12,8,9,0x9fb7a0,'north');room(12,12,9,9,0xc58ca3,'north');
+// Decorative solid buildings
+for(const [x,z,c] of [[-36,-12,0x9b8579],[-36,12,0xc9b080],[36,-12,0xa8a08b],[36,12,0xb48a72],[-12,36,0x8b9eaf],[12,36,0xb5a094],[-12,-36,0x9d8c79],[12,-36,0x9aa47f]]){box(x,2.7,z,11,5.4,11,c,true);for(let yy=1.2;yy<4.7;yy+=1.45){addWindow(x-2.5,yy,z+5.52);addWindow(x+2.5,yy,z+5.52)}}
+// street props
+for(let i=0;i<22;i++){let x=(Math.random()-.5)*76,z=(Math.random()-.5)*76;if(Math.abs((x+36)%24-12)<5||Math.abs((z+36)%24-12)<5){const p=box(x,.45,z,.7,.9,.7,[0x6c5541,0x916c43,0x5b6570][i%3],false);p.userData={type:'item',label:'PODNIEŚ',name:i%2?'Puszka':'Pudełko'};interactables.push(p)}}
+// benches
+for(const [x,z,r] of [[-5,-5,0],[6,5,Math.PI/2],[-5,28,0],[29,-5,Math.PI/2]]){let seat=box(x,.55,z,2.2,.18,.65,0x825d39,true);let back=box(x,.95,z-.28,2.2,.75,.12,0x825d39,true);let l=box(x-.8,.28,z,.12,.55,.55,0x333333,true),rr=box(x+.8,.28,z,.12,.55,.55,0x333333,true);for(const o of [seat,back,l,rr])o.rotation.y=r}
+
+function makeFuggler(x,z,color,scale=.75){const g=new THREE.Group();g.position.set(x,.55,z);g.scale.setScalar(scale);
+ const body=new THREE.Mesh(new THREE.SphereGeometry(.52,18,14),mat(color));body.scale.set(1,.92,.76);body.castShadow=true;g.add(body);
+ const eyeMat=mat(0xf4f4e8),pupil=mat(0x171717);for(const ex of [-.2,.2]){const e=new THREE.Mesh(new THREE.SphereGeometry(.115,12,10),eyeMat);e.position.set(ex,.16,.42);g.add(e);const p=new THREE.Mesh(new THREE.SphereGeometry(.052,10,8),pupil);p.position.set(ex+(Math.random()-.5)*.035,.15,.515);g.add(p)}
+ const mouth=new THREE.Mesh(new THREE.BoxGeometry(.55,.19,.09),mat(0x351a18));mouth.position.set(0,-.16,.49);g.add(mouth);
+ for(let i=0;i<6;i++){const tooth=new THREE.Mesh(new THREE.ConeGeometry(.045,.14,4),mat(0xf8edcf));tooth.rotation.x=Math.PI;tooth.position.set(-.22+i*.088,-.09,.56);g.add(tooth)}
+ for(const sx of [-1,1]){const ear=new THREE.Mesh(new THREE.ConeGeometry(.16,.4,5),mat(color));ear.position.set(sx*.47,.37,0);ear.rotation.z=sx*-0.75;g.add(ear)}
+ scene.add(g);g.userData={type:'fuggler',label:'ZNAJDŹ FUGGLERA',name:'Fuggler'};interactables.push(g);collectibles.push(g);return g}
+makeFuggler(-12,-13.2,0xff6f61);makeFuggler(12,-11.2,0x84d07f,.68);makeFuggler(-11,12.5,0x8d79d6,.72);makeFuggler(13,13,0xf1cc54,.8);makeFuggler(4,30,0x5dc4c6,.7);makeFuggler(-30,4,0xf186b7,.66);
+
+// Interior furniture used as cover
+for(const [x,z] of [[-12,-11],[12,-11],[-12,11],[12,11]]){box(x,.45,z,2.3,.9,.8,0x74523a,true);box(x+2,.6,z+2,1.1,1.2,1.1,0x5f5148,true)}
+
+const player={pos:new THREE.Vector3(0,1.68,0),velY:0,yaw:0,pitch:0,onGround:true};camera.position.copy(player.pos);
+function collides(x,z){const r=.34;for(const c of colliders){const p=c.obj.getWorldPosition(new THREE.Vector3());if(Math.abs(x-p.x)<c.w/2+r&&Math.abs(z-p.z)<c.d/2+r)return true}return false}
+
+const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE')act();if(e.code==='KeyQ')drop();if(e.code==='Space')jump()});addEventListener('keyup',e=>keys[e.code]=false);
+renderer.domElement.addEventListener('click',()=>{if(!('ontouchstart'in window))renderer.domElement.requestPointerLock?.()});addEventListener('mousemove',e=>{if(document.pointerLockElement===renderer.domElement){player.yaw-=e.movementX*.0023;player.pitch-=e.movementY*.0021;player.pitch=Math.max(-1.35,Math.min(1.35,player.pitch))}});
+
+let joy={x:0,y:0,id:null},lookId=null,lastLook=null;const joyEl=document.querySelector('#joy'),stick=document.querySelector('#stick');
+function joyMove(t){const r=joyEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=t.clientX-cx,dy=t.clientY-cy,len=Math.hypot(dx,dy),max=r.width*.34;if(len>max){dx*=max/len;dy*=max/len}joy.x=dx/max;joy.y=dy/max;stick.style.transform=`translate(${dx}px,${dy}px)`}
+jo y;
+jo y;
+jo y;
+joyEl.addEventListener('pointerdown',e=>{joy.id=e.pointerId;joyEl.setPointerCapture(e.pointerId);joyMove(e)});joyEl.addEventListener('pointermove',e=>{if(e.pointerId===joy.id)joyMove(e)});function joyEnd(e){if(e.pointerId===joy.id){joy.id=null;joy.x=joy.y=0;stick.style.transform=''}}joyEl.addEventListener('pointerup',joyEnd);joyEl.addEventListener('pointercancel',joyEnd);
+renderer.domElement.addEventListener('pointerdown',e=>{if(e.clientX>innerWidth*.38){lookId=e.pointerId;lastLook={x:e.clientX,y:e.clientY}}});renderer.domElement.addEventListener('pointermove',e=>{if(e.pointerId===lookId&&lastLook){let dx=e.clientX-lastLook.x,dy=e.clientY-lastLook.y;player.yaw-=dx*.005;player.pitch-=dy*.0044;player.pitch=Math.max(-1.25,Math.min(1.25,player.pitch));lastLook={x:e.clientX,y:e.clientY}}});renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookId){lookId=null;lastLook=null}});
+
+function jump(){if(player.onGround){player.velY=4.7;player.onGround=false}}
+document.querySelector('#jump').onclick=jump;document.querySelector('#interact').onclick=act;document.querySelector('#drop').onclick=drop;
+
+const ray=new THREE.Raycaster();let target=null;function scan(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const meshes=[];for(const o of interactables){if(!o.visible)continue;o.traverse?.(c=>{if(c.isMesh)meshes.push(c)});if(o.isMesh)meshes.push(o)}const hits=ray.intersectObjects(meshes,false);target=null;for(const h of hits){if(h.distance>2.4)break;let n=h.object;while(n.parent&&n.parent!==scene&&!n.userData.type)n=n.parent;if(n.userData?.type){target=n;break}}
+ const p=document.querySelector('#prompt');if(target){let label=target.userData.label||'AKCJA';if(target.userData.type==='door')label=target.userData.open?'ZAMKNIJ DRZWI':'OTWÓRZ DRZWI';p.textContent=label;p.style.opacity=1}else p.style.opacity=0}
+function toast(t){const el=document.querySelector('#toast');el.textContent=t;el.style.opacity=1;clearTimeout(el._t);el._t=setTimeout(()=>el.style.opacity=0,1700)}
+function act(){scan();if(!target)return;if(target.userData.type==='door'){target.userData.open=!target.userData.open;target.userData.label=target.userData.open?'ZAMKNIJ DRZWI':'OTWÓRZ DRZWI';target.userData.goal=target.userData.open?-Math.PI/2:0;toast(target.userData.open?'Drzwi otwarte':'Drzwi zamknięte')}else if(target.userData.type==='item'){if(held){toast('Najpierw upuść trzymany przedmiot');return}held=target;target.userData.label='TRZYMASZ';document.querySelector('#drop').style.display='block';toast('Podniesiono: '+(target.userData.name||'przedmiot'))}else if(target.userData.type==='fuggler'){target.visible=false;found++;document.querySelector('#found').textContent=`Znalezione: ${found} / ${collectibles.length}`;toast('🎉 Znalazłeś Fugglera!');if(found===collectibles.length)setTimeout(()=>document.querySelector('#complete').style.display='flex',700)}}
+function drop(){if(!held)return;const f=new THREE.Vector3(0,-.35,-1.25).applyEuler(new THREE.Euler(0,player.yaw,0));held.position.copy(player.pos).add(f);held.position.y=.4;held=null;document.querySelector('#drop').style.display='none';toast('Upuszczono przedmiot')}
+
+let prev=performance.now();function loop(t){requestAnimationFrame(loop);let dt=Math.min(.035,(t-prev)/1000);prev=t;
+ for(const d of doors){if(d.userData.goal!==undefined){const targetRot=d.userData.goal;d.rotation.y+=(targetRot-d.rotation.y)*Math.min(1,dt*7)}}
+ let fwd=(keys.KeyW?1:0)-(keys.KeyS?1:0)-joy.y,side=(keys.KeyD?1:0)-(keys.KeyA?1:0)+joy.x;let len=Math.hypot(fwd,side);if(len>1){fwd/=len;side/=len}const speed=4.1;const sin=Math.sin(player.yaw),cos=Math.cos(player.yaw);const dx=(side*cos-fwd*sin)*speed*dt,dz=(-side*sin-fwd*cos)*speed*dt;let nx=player.pos.x+dx,nz=player.pos.z;if(!collides(nx,nz))player.pos.x=nx;nx=player.pos.x;nz=player.pos.z+dz;if(!collides(nx,nz))player.pos.z=nz;
+ player.velY-=11*dt;player.pos.y+=player.velY*dt;if(player.pos.y<=1.68){player.pos.y=1.68;player.velY=0;player.onGround=true}
+ camera.position.copy(player.pos);camera.rotation.y=player.yaw;camera.rotation.x=player.pitch;
+ if(held){const hp=new THREE.Vector3(0,-.23,-1.0).applyEuler(camera.rotation);held.position.copy(camera.position).add(hp);held.rotation.y=player.yaw}
+ scan();renderer.render(scene,camera)}requestAnimationFrame(loop);
+
+document.querySelector('#play').onclick=()=>{document.querySelector('#start').style.display='none';toast('Znajdź 6 ukrytych Fugglerów!')};
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script>
+</body></html>
