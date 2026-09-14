@@ -1,39 +1,25 @@
-# Crime City Classic — Warszawa 3.0
+# Crime City — Śródmieście 4.0
 
-Standalone top-down driving sandbox. Serve this directory as static files; no build, external script loader or dependencies are needed. `index.html` loads `game.js` from the same deployment.
+Static browser game: serve this directory; no build or external script loader. Open `index.html`.
+
+## Map
+
+Stage 1 replaces the procedural square street grid with OpenStreetMap street geometry, 9,062 building footprints, park outlines and Vistula polygons. Real street bearings and shared OSM node IDs are retained. Road widths, traffic access and landmark rendering are gameplay adaptations, not a real-world navigation system. The staging outline is approximate; surrounding districts remain explicitly unfinished.
+
+Map data load from three local scripts. A 3000×3000 overview keeps memory bounded; an LRU cache of up to 32 full-resolution 512px tiles sharpens the nearby driving view. Spatial indexes accelerate road/building/water collision checks. Cars follow a directed road graph rather than four cardinal directions. See `maps/LICENSE.md` for ODbL attribution and `ROADMAP.md` for the district sequence.
 
 ## Play
 
-- WASD / arrows: walk; accelerate, reverse and steer in cars.
-- E: enter or leave a nearby working car. Slow down before exiting.
-- Mouse + click / Space: aim and shoot on foot. R: cycle three weapons.
-- Shift: sprint on foot, handbrake in a car.
-- F / MISJE: choose one of five replayable missions.
-- M / tap the minimap: open the city map and mission route.
-- Escape / P: pause. Focus loss and backgrounding pause automatically.
-- Touch: directional joystick; contextual action, gas/shoot and brake/sprint buttons.
-- Green G: free car repair and health recovery while stopped in a car.
+WASD/arrows: walk or drive. E: enter/exit. Mouse/click or Space: shoot. R: weapon. Shift: sprint/handbrake. F: missions. M or tap minimap: atlas. Atlas supports +/−, drag, player position and district reset. Escape/P: pause. Touch controls provide joystick and action buttons. Green G: repair while stopped.
 
-Effects are opt-in; original melodic Web Audio music has its own toggle and starts after a user gesture. Day/night is manual. Cash, best cash and completed mission IDs are saved locally; position and active mission progress are session-only. `?controls=touch` enables the touch controls on desktop for interaction checks.
-
-## Implementation
-
-A fixed 60 Hz simulation is independent of display refresh rate. Map generation uses a deterministic seed and caches static geometry. Cars follow intersection waypoints and traffic lights, brake for vehicles ahead, and use oriented-box collision checks. Police use road routing, dismount near a wanted pedestrian, pursue with obstacle-aware foot paths, and reboard when the pursuit ends. Health, car damage, destruction, arrest, respawn, five multi-step missions, local cash persistence, procedural audio, minimap and night headlights are included.
+Five missions now use Śródmieście locations: palace–Miodowa passenger run, Castle/Kopernik deliveries, a tour of three squares, escape to Muranów and an untimed Old Town–Łazienki trip. Cash and completed tasks persist in local storage. Original melodic music and effects have separate toggles. Police dismount and pursue pedestrians.
 
 ## Verification
 
-Run `node tests/game.cjs` from this directory. The isolated simulation test checks entry/exit, throttle/brake, cooldowns, pause, destruction, garages, job rewards, touch controls, matching travel at 30/60/120 display FPS, and one simulated minute of traffic. This is complemented by browser checks of start, vehicle controls, weapons, pause, sound and night mode. Mobile hardware performance still requires device testing.
+Run `node tests/game.cjs` (delegates to `tests/srodmiescie.cjs`). Checks actual named streets/non-orthogonal geometry, safe spawn/entry/exit, every mission route and completion, timeout, map pause, car/body collisions, explosions and 30 simulated seconds of traffic. Earlier physics uses the same fixed 60 Hz simulation. Browser verification covers the mobile game view, city atlas and zoom controls. Real phone hardware performance is not measured.
 
-## Source lineage
+## Geographic data
 
-Reworks the sandbox originally deployed from `SamiWiecieKto/cloude` commit `5b74cfa9f96a398df617826509ed23acff7a14e0`, path `crime-city-classic/index.html`. Deployment now contains the actual game assets rather than a `document.write` loader pinned to that old commit.
+`maps/srodmiescie-data.js`, `maps/buildings-1.js` and `maps/buildings-2.js` contain the complete derivative database. Coordinates are a local metric projection, rounded to one unit. The mapping source is [OpenStreetMap](https://www.openstreetmap.org/copyright). Source extraction timestamps and license are in `maps/LICENSE.md`.
 
-## Warsaw edition
-
-The map is an original, stylized and compressed interpretation, not a street-for-street navigation map. The Vistula separates the west-bank districts from Praga. Four vehicle bridges connect the road graph; traffic and route hints cannot cross water elsewhere. Landmarks include the Palace of Culture, Central Station, Old Town, Royal Castle, Copernicus Science Centre, National Stadium, Saxon Garden and Łazienki. Street names and landmark geography are simplified for play.
-
-The five missions are a stadium passenger run, two foot deliveries, a three-checkpoint bridge loop, a wanted escape to Wola, and an untimed Old Town/Łazienki visit. Missions pause with menus and the city map. Completion awards złoty and records progress; tasks can be replayed or cancelled.
-
-Verification additionally checks river collision, all four bridges, reachability of objectives, road routing, foot routing around the palace, patrol dismount/chase/reboarding, pedestrian–car collisions, explosion cleanup and persistent bodies. The 390×844 browser check covers mission selection, the first passenger pickup and the city map. Real mobile hardware performance is not measured.
-
-Geographic references: [Warsaw tourism: viewpoints](https://go2warsaw.pl/punkty-widokowe/), [Warsaw tourism: National Stadium](https://go2warsaw.pl/stadion-pge-narodowy/), [PGE Narodowy](https://www.pgenarodowy.pl/). All game geometry and audio are generated locally; no map tiles or commercial recordings are bundled.
+Compile the source snapshots with `python scripts/build-srodmiescie.py /path/to/snapshots`. Relation assembly uses `scripts/merge-polygons.py` and Shapely. These scripts are development utilities; the browser game has no dependencies.
