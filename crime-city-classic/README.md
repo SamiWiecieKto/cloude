@@ -1,4 +1,4 @@
-# Crime City — Śródmieście 4.0
+# Crime City — Śródmieście 4.1
 
 Static browser game: serve this directory; no build or external script loader. Open `index.html`.
 
@@ -23,3 +23,9 @@ Run `node tests/game.cjs` (delegates to `tests/srodmiescie.cjs`). Checks actual 
 `maps/srodmiescie-data.js`, `maps/buildings-1.js` and `maps/buildings-2.js` contain the complete derivative database. Coordinates are a local metric projection, rounded to one unit. The mapping source is [OpenStreetMap](https://www.openstreetmap.org/copyright). Source extraction timestamps and license are in `maps/LICENSE.md`.
 
 Compile the source snapshots with `python scripts/build-srodmiescie.py /path/to/snapshots`. Relation assembly uses `scripts/merge-polygons.py` and Shapely. These scripts are development utilities; the browser game has no dependencies.
+
+## 4.1 playability fixes
+
+Roads keep their geographic centerlines but have wider playable carriageways (minimum 38 units one-way, 54 two-way) and matching collision clearance. Steering responds at lower speeds. On mobile, the weapon button becomes COFAJ while driving: hold to reverse, release to stop applying reverse throttle, steer with the joystick. Keyboard S/down remains reverse. Input cancellation and pause clear reverse throttle.
+
+Traffic is maintained around the current player neighborhood, with target pools of 75 ambient vehicles and 170 pedestrians; actual counts depend on safe spawn space. Pedestrians spawn beside roads. Off-screen distant ambient entities are recycled and replacements appear beyond the visible screen. Player-owned cars, wrecks and police are not removed by ambient traffic recycling. Tests include nearby density, width thresholds, touch reverse, cancellation and keyboard reverse.
